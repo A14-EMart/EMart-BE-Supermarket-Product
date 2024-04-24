@@ -1,11 +1,15 @@
 package com.a14.emart.backendsp.model;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity
 @Table(name = "supermarket")
+@Getter
+@Setter
 public class Supermarket {
 
     @Id

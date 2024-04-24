@@ -1,9 +1,10 @@
 plugins {
 	java
-	id("org.springframework.boot") version "3.2.4"
-	id("io.spring.dependency-management") version "1.1.4"
 	jacoco
+	id("org.springframework.boot") version "3.2.2"
+	id("io.spring.dependency-management") version "1.1.4"
 }
+
 
 group = "com.a14.emart"
 version = "0.0.1-SNAPSHOT"
