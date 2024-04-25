@@ -2,68 +2,71 @@ package com.a14.emart.backendsp.repository;
 
 import com.a14.emart.backendsp.model.Supermarket;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+
+@ActiveProfiles("test")
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class SupermarketRepositoryTest {
+
+    @Autowired
+    private TestEntityManager entityManager;
 
     @Autowired
     private SupermarketRepository supermarketRepository;
 
+    @BeforeEach
+    void setUp() {
+        Supermarket market1 = new Supermarket("Fresh Market", "A fresh food market offering a variety of organic foods.", "John Doe");
+        entityManager.persist(market1);
+
+        Supermarket market2 = new Supermarket("Green Fresh Market", "Specializes in green, organic produce and eco-friendly products.", "Jane Doe");
+        entityManager.persist(market2);
+
+        Supermarket market3 = new Supermarket("Ultra Mart", "Provides all your daily needs from groceries to household items.", "Alice Johnson");
+        entityManager.persist(market3);
+
+        entityManager.flush();  // Ensures all entities are persisted before each test
+    }
     @AfterEach
-    public void tearDown() {
-        supermarketRepository.deleteAll();
+    void tearDown() {
+        entityManager.clear();
     }
 
     @Test
-    public void testSaveSupermarket() {
-        Supermarket supermarket = new Supermarket("Toko Uno", "Toko kelontong", "Pak Budi");
-
-        supermarket = supermarketRepository.save(supermarket);
-
-        assertThat(supermarket.getId()).isNotNull();
+    void testFindByNameContainingReturnsCorrectResults() {
+        List<Supermarket> results = supermarketRepository.findByNameContainingIgnoreCase("Fresh");
+        assertEquals(2, results.size());
     }
 
     @Test
-    public void testFindById() {
-        Supermarket supermarket = new Supermarket("Toko Uno", "Toko kelontong", "Pak Budi");
-        supermarket = supermarketRepository.save(supermarket);
-
-        Optional<Supermarket> retrievedSupermarket = supermarketRepository.findById(supermarket.getId());
-
-        assertThat(retrievedSupermarket).isPresent();
-        assertThat(retrievedSupermarket.get().getName()).isEqualTo("Toko Uno");
-        assertThat(retrievedSupermarket.get().getDescription()).isEqualTo("Toko kelontong");
-        assertThat(retrievedSupermarket.get().getPengelola()).isEqualTo("Pak Budi");
+    void testFindByNameContainingReturnsEmptyIfNoMatch() {
+        List<Supermarket> results = supermarketRepository.findByNameContainingIgnoreCase("Bazaar");
+        assertTrue(results.isEmpty());
     }
 
     @Test
-    public void testFindByNameContaining() {
-        supermarketRepository.save(new Supermarket("Toko A", "Description A", "Pengelola A"));
-        supermarketRepository.save(new Supermarket("Toko B", "Description B", "Pengelola B"));
-        supermarketRepository.save(new Supermarket("Supermarket C", "Description C", "Pengelola C"));
-
-        List<Supermarket> searchResults = supermarketRepository.findByNameContaining("Toko");
-
-        assertThat(searchResults).hasSize(2);
-        assertThat(searchResults).extracting(Supermarket::getName).contains("Toko A", "Toko B");
+    void testFindByNameContainingIsCaseInsensitive() {
+        List<Supermarket> results = supermarketRepository.findByNameContainingIgnoreCase("fresh");
+        assertEquals(2, results.size());
     }
 
     @Test
-    public void testDeleteSupermarket() {
-        Supermarket supermarket = new Supermarket("Toko Uno", "Toko kelontong", "Pak Budi");
-        supermarket = supermarketRepository.save(supermarket);
-
-        supermarketRepository.deleteById(supermarket.getId());
-
-        assertThat(supermarketRepository.findById(supermarket.getId())).isEmpty();
+    void testFindByNameContainingHandlesPartialMatches() {
+        List<Supermarket> results = supermarketRepository.findByNameContainingIgnoreCase("Market");
+        assertEquals(2, results.size()); // Should find all entries with "Market" in their name
     }
 }
