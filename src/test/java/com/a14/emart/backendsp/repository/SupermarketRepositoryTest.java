@@ -69,4 +69,5 @@ public class SupermarketRepositoryTest {
         List<Supermarket> results = supermarketRepository.findByNameContainingIgnoreCase("Market");
         assertEquals(2, results.size()); // Should find all entries with "Market" in their name
     }
+
 }
