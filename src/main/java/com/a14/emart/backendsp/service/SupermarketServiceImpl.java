@@ -14,7 +14,7 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
     SupermarketRepository supermarketRepository;
     @Override
     public Supermarket create(Supermarket supermarket){
-        return null;
+        return supermarketRepository.save(supermarket);
 
     }
     @Override
