@@ -54,4 +54,9 @@ public class ProductBuilder {
         }
         return true;
     }
+    private void resetBuilder() {
+        this.name = "";
+        this.price = 0L;
+        this.stock = 0;
+    }
 }
