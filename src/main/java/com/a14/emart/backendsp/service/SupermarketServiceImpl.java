@@ -1,13 +1,21 @@
 package com.a14.emart.backendsp.service;
 
 import com.a14.emart.backendsp.model.Supermarket;
+import com.a14.emart.backendsp.repository.SupermarketRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+@Service
 public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadService<Supermarket>, UpdateService<Supermarket>, DeleteService<Supermarket>{
+
+    @Autowired
+    SupermarketRepository supermarketRepository;
     @Override
     public Supermarket create(Supermarket supermarket){
         return null;
+
     }
     @Override
     public List<Supermarket> findAll(){
