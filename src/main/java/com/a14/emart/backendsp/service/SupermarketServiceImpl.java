@@ -46,8 +46,9 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
         return supermarketRepository.save(existingSupermarket);
     }
     @Override
-    public void deleteById(UUID id){
-
+    public boolean deleteById(UUID id) {
+        return false;
     }
+
 
 }

@@ -27,6 +27,9 @@ public class SupermarketServiceImplTest {
     private UpdateService<Supermarket> updateService;
 
     @Autowired
+    private DeleteService<Supermarket> deleteService;
+
+    @Autowired
     private SupermarketRepository supermarketRepository;
 
     @BeforeEach
@@ -147,6 +150,36 @@ public class SupermarketServiceImplTest {
         String expectedMessage = "Supermarket not found with id " + nonExistentId;
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage), "Exception message should contain the correct ID");
+    }
+
+    @Test
+    @Transactional
+    public void testDeleteById_Successful() {
+        Supermarket supermarket = new Supermarket("Initial Supermarket", "Initial Description", "Initial Pengelola");
+        Supermarket savedSupermarket = createService.create(supermarket);
+        UUID supermarketId = savedSupermarket.getId();
+        // Given
+        assertTrue(supermarketRepository.existsById(supermarketId), "Supermarket should exist before deletion");
+
+        // When
+        boolean result = deleteService.deleteById(supermarketId);
+
+        // Then
+        assertTrue(result, "Deletion should return true indicating success");
+        assertFalse(supermarketRepository.existsById(supermarketId), "Supermarket should no longer exist after deletion");
+    }
+
+    @Test
+    @Transactional
+    public void testDeleteById_NonExistentID() {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+
+        // When
+        boolean result = deleteService.deleteById(nonExistentId);
+
+        // Then
+        assertFalse(result, "Deletion should return false indicating the supermarket did not exist");
     }
 
 
