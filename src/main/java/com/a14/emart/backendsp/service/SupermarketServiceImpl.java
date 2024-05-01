@@ -34,7 +34,16 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
 
     @Override
     public Supermarket update(UUID id, Supermarket newSupermarket) {
-        return null;
+        Supermarket existingSupermarket = supermarketRepository.findById(id).orElse(null);
+        if (existingSupermarket == null) {
+            throw new EntityNotFoundException("Supermarket not found with id " + id);
+        }
+
+        existingSupermarket.setName(newSupermarket.getName());
+        existingSupermarket.setDescription(newSupermarket.getDescription());
+        existingSupermarket.setPengelola(newSupermarket.getPengelola());
+
+        return supermarketRepository.save(existingSupermarket);
     }
     @Override
     public void deleteById(UUID id){
