@@ -3,13 +3,15 @@ package com.a14.emart.backendsp.service;
 import com.a14.emart.backendsp.model.Supermarket;
 import com.a14.emart.backendsp.repository.SupermarketRepository;
 import com.a14.emart.backendsp.service.CreateService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class SupermarketServiceImplTest {
@@ -18,7 +20,20 @@ public class SupermarketServiceImplTest {
     private CreateService<Supermarket> createService;
 
     @Autowired
+    private ReadService<Supermarket> readService;
+    @Autowired
     private SupermarketRepository supermarketRepository;
+
+    @BeforeEach
+    void setup() {
+        // Clear the repository to ensure it's empty
+        supermarketRepository.deleteAll();
+
+        // Pre-populate the database
+        supermarketRepository.save(new Supermarket("Supermarket 1", "Description 1", "Pengelola 1"));
+        supermarketRepository.save(new Supermarket("Supermarket 2", "Description 2", "Pengelola 2"));
+        supermarketRepository.save(new Supermarket("Supermarket 3", "Description 3", "Pengelola 3"));
+    }
 
     @Test
     @Transactional
@@ -39,5 +54,16 @@ public class SupermarketServiceImplTest {
         Supermarket retrievedSupermarket = supermarketRepository.findById(savedSupermarket.getId()).orElse(null);
         assertNotNull(retrievedSupermarket, "Supermarket should be retrievable from the database");
         assertEquals("Test Supermarket", retrievedSupermarket.getName(), "Name should be 'Test Supermarket'");
+    }
+
+    @Test
+    @Transactional
+    public void testFindAllSupermarkets() {
+        // When
+        List<Supermarket> supermarkets = readService.findAll();
+
+        // Then
+        assertEquals(3, supermarkets.size(), "Should find all three supermarkets");
+        assertFalse(supermarkets.isEmpty(), "The list of supermarkets should not be empty");
     }
 }
