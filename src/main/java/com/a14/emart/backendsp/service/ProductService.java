@@ -4,9 +4,10 @@ import com.a14.emart.backendsp.model.Product;
 import java.util.List;
 
 public interface ProductService {
-    public Product createProduct(String name, Long price, Integer stock);
-    public Product editProduct(String UUID, Product changeAttribute);
+    public Product createProduct(Product product);
+    public Product editProduct(String UUID, Product product);
     public Product deleteProduct(String UUID);
     public List<Product> getAllProduct();
-    public List<Product> searchProduct(String name);
+    public List<Product> searchProductByName(String name);
+    public Product searchProductById(String id);
 }
