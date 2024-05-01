@@ -1,15 +1,27 @@
 package com.a14.emart.backendsp.model;
 import java.util.UUID;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import jakarta.persistence.*;
 
-@Getter @Setter
+@Data
+@Entity
+@Table(name = "products")
+@Getter
 public class Product {
-    private String productId;
-    private String productName;
-    private int productQuantity;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
-    public Product() {
-        this.productId = UUID.randomUUID().toString();
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "price", nullable = false)
+    private Long price;
+
+    @Column(name = "stock", nullable = false)
+    private Integer stock;
+
+    public static ProductBuilder getBuilder() {
+        return new ProductBuilder();
     }
 }
