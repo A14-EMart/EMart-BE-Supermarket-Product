@@ -47,7 +47,11 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
     }
     @Override
     public boolean deleteById(UUID id) {
-        return false;
+        if (!supermarketRepository.existsById(id)) {
+            return false;
+        }
+        supermarketRepository.deleteById(id);
+        return true;
     }
 
 
