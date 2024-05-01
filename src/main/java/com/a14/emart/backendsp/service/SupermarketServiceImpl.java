@@ -28,7 +28,7 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
 
     @Override
     public List<Supermarket> findByMatch(String param){
-        return null;
+        return supermarketRepository.findByNameContainingIgnoreCase(param);
     }
 
     @Override
