@@ -29,7 +29,7 @@ var webdrivermanagerVersion = "5.6.3"
 var junitJupiterVersion = "5.9.1"
 
 dependencies {
-	mplementation("org.springframework.boot:spring-boot-starter-webflux")
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	compileOnly("org.projectlombok:lombok")
