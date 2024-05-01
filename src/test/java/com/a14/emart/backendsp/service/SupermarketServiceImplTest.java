@@ -2,7 +2,7 @@ package com.a14.emart.backendsp.service;
 
 import com.a14.emart.backendsp.model.Supermarket;
 import com.a14.emart.backendsp.repository.SupermarketRepository;
-import com.a14.emart.backendsp.service.CreateService;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +22,10 @@ public class SupermarketServiceImplTest {
 
     @Autowired
     private ReadService<Supermarket> readService;
+
+    @Autowired
+    private UpdateService<Supermarket> updateService;
+
     @Autowired
     private SupermarketRepository supermarketRepository;
 
@@ -106,4 +110,44 @@ public class SupermarketServiceImplTest {
         results = readService.findByMatch("Zebra");
         assertTrue(results.isEmpty(), "Should return an empty list for a non-matching search term");
     }
+
+    @Test
+    @Transactional
+    public void testUpdateSupermarket_Successful() {
+        Supermarket supermarket = new Supermarket("Initial Supermarket", "Initial Description", "Initial Pengelola");
+        Supermarket savedSupermarket = createService.create(supermarket);
+        UUID supermarketId = savedSupermarket.getId();
+        // Given
+        Supermarket updatedSupermarket = new Supermarket("Updated Supermarket", "Updated Description", "Updated Pengelola");
+
+        // When
+        Supermarket result = updateService.update(supermarketId, updatedSupermarket);
+
+        // Then
+        assertNotNull(result, "Updated supermarket should not be null");
+        assertEquals(supermarketId, result.getId(), "ID should remain the same");
+        assertEquals("Updated Supermarket", result.getName(), "Name should be updated");
+        assertEquals("Updated Description", result.getDescription(), "Description should be updated");
+        assertEquals("Updated Pengelola", result.getPengelola(), "Pengelola should be updated");
+    }
+
+    @Test
+    @Transactional
+    public void testUpdateSupermarket_NonExistentID() {
+        // Given
+        Supermarket updatedSupermarket = new Supermarket("Updated Supermarket", "Updated Description", "Updated Pengelola");
+        UUID nonExistentId = UUID.randomUUID();
+
+        // When
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+            updateService.update(nonExistentId, updatedSupermarket);
+        });
+
+        // Then
+        String expectedMessage = "Supermarket not found with id " + nonExistentId;
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage), "Exception message should contain the correct ID");
+    }
+
+
 }

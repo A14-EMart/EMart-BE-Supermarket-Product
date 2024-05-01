@@ -2,6 +2,7 @@ package com.a14.emart.backendsp.service;
 
 import com.a14.emart.backendsp.model.Supermarket;
 import com.a14.emart.backendsp.repository.SupermarketRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,8 +33,8 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
     }
 
     @Override
-    public void update(UUID id, Supermarket newSupermarket){
-
+    public Supermarket update(UUID id, Supermarket newSupermarket) {
+        return null;
     }
     @Override
     public void deleteById(UUID id){
