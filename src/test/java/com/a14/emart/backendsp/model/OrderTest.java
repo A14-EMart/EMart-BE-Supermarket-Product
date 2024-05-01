@@ -1,7 +1,5 @@
 package com.a14.emart.backendsp.model;
 
-package id.ac.ui.cs.advprog.eshop.model;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
