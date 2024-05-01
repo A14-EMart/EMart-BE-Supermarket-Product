@@ -19,7 +19,7 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
     }
     @Override
     public List<Supermarket> findAll(){
-        return null;
+        return supermarketRepository.findAll();
     }
     @Override
     public Supermarket findById(UUID id){
