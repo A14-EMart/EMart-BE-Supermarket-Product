@@ -6,6 +6,7 @@ import com.a14.emart.backendsp.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -23,7 +24,8 @@ public class ProductController {
     }
 
     @GetMapping("/search/{query}")
-    public ResponseEntity<List<Product>> queryProduct(String query) {
+    public ResponseEntity<List<Product>> queryProduct(@PathVariable("query") String query) {
+        System.out.println(query);
         List<Product> queryProduct = productService.searchProduct(query);
         return ResponseEntity.ok(queryProduct);
     }
