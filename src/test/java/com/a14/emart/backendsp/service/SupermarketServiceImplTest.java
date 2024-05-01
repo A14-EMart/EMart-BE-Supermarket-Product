@@ -84,4 +84,26 @@ public class SupermarketServiceImplTest {
         Supermarket notFoundSupermarket = readService.findById(UUID.randomUUID());
         assertNull(notFoundSupermarket, "Should return null for a non-existing supermarket ID");
     }
+
+    @Test
+    @Transactional
+    public void testFindByMatch() {
+        createService.create(new Supermarket("Fresh Foods Market", "Provides fresh fruits and vegetables.", "Alice"));
+        createService.create(new Supermarket("Quick Stop Market", "Convenient stop for all your quick shopping needs.", "Bob"));
+        createService.create(new Supermarket("Budget Bites Market", "Affordable groceries for everyone.", "Charlie"));
+        // When searching for a common term
+        List<Supermarket> results = readService.findByMatch("Market");
+
+        // Then
+        assertEquals(6, results.size(), "Should match all six markets");
+
+        // When searching for a specific term
+        results = readService.findByMatch("Fresh");
+        assertEquals(1, results.size(), "Should find one supermarket with 'Fresh' in its name");
+        assertEquals("Fresh Foods Market", results.getFirst().getName(), "The supermarket name should match 'Fresh Foods Market'");
+
+        // When searching for a non-existing term
+        results = readService.findByMatch("Zebra");
+        assertTrue(results.isEmpty(), "Should return an empty list for a non-matching search term");
+    }
 }
