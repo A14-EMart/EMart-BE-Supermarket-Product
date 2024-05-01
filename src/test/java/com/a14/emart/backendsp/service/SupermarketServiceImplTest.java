@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -65,5 +66,22 @@ public class SupermarketServiceImplTest {
         // Then
         assertEquals(3, supermarkets.size(), "Should find all three supermarkets");
         assertFalse(supermarkets.isEmpty(), "The list of supermarkets should not be empty");
+    }
+
+    @Test
+    @Transactional
+    public void testFindById() {
+        Supermarket newSupermarket = new Supermarket("Test Supermarket", "A supermarket providing all essentials.", "John Doe");
+        Supermarket savedSupermarket = createService.create(newSupermarket);
+        UUID supermarketId = savedSupermarket.getId();  // Save the ID for test usage
+        // When
+        Supermarket foundSupermarket = readService.findById(supermarketId);
+
+        // Then
+        assertEquals(supermarketId, foundSupermarket.getId(), "The ID of the found supermarket should match the saved supermarket's ID");
+
+        // Test fetching a non-existing supermarket
+        Supermarket notFoundSupermarket = readService.findById(UUID.randomUUID());
+        assertNull(notFoundSupermarket, "Should return null for a non-existing supermarket ID");
     }
 }

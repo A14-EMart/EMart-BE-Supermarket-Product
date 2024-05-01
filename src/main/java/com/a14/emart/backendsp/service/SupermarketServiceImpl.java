@@ -24,6 +24,7 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
     @Override
     public Supermarket findById(UUID id){
         return null;
+
     }
 
     @Override
