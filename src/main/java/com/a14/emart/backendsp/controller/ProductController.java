@@ -6,9 +6,11 @@ import com.a14.emart.backendsp.dto.ModifyProductResponse;
 import com.a14.emart.backendsp.model.ProductBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import com.a14.emart.backendsp.service.JwtService;
 import com.a14.emart.backendsp.model.Product;
 import com.a14.emart.backendsp.service.ProductService;
-
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
@@ -17,11 +19,15 @@ import java.util.Optional;
 
 @RequestMapping("/product")
 @RestController
+@RequiredArgsConstructor
 public class ProductController {
+    @Value("${spring.route.gateway_url}")
+    private String GATEWAY_URL;
 
     @Autowired
     private ProductService productService;
 
+    private final JwtService jwtService;
     @GetMapping("/all-product")
     public ResponseEntity<List<Product>> allProduct() {
         List<Product> allProduct = productService.getAllProduct();
@@ -35,7 +41,14 @@ public class ProductController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Product> createProduct(@RequestBody CreateProductRequest product) {
+    public ResponseEntity<Product> createProduct(@RequestHeader (value = "Authorization") String id,
+                                                 @RequestBody CreateProductRequest product) throws IllegalAccessException {
+
+        String token = id.replace("Bearer ", "");
+        if (!jwtService.extractRole(token).equalsIgnoreCase("manager")
+                && !jwtService.extractRole(token).equalsIgnoreCase("admin")) {
+            throw new IllegalAccessException("You have no access.");
+        }
         Product savedProduct = productService.createProduct(new ProductBuilder()
                 .setName(product.name)
                 .setStock(product.stock)
@@ -45,7 +58,13 @@ public class ProductController {
     }
 
     @PostMapping("/edit")
-    public ResponseEntity<Product> editProduct(@RequestBody ModifyProductResponse product) {
+    public ResponseEntity<Product> editProduct(@RequestHeader (value = "Authorization") String id,
+                                               @RequestBody ModifyProductResponse product) throws IllegalAccessException {
+        String token = id.replace("Bearer ", "");
+        if (!jwtService.extractRole(token).equalsIgnoreCase("manager")
+                && !jwtService.extractRole(token).equalsIgnoreCase("admin")) {
+            throw new IllegalAccessException("You have no access.");
+        }
         Product savedProduct = productService.editProduct(product.UUID,
                 new ProductBuilder()
                         .setName(product.name)
@@ -56,7 +75,13 @@ public class ProductController {
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<Product> deleteProduct(@RequestBody DeleteProductRequest request) {
+    public ResponseEntity<Product> deleteProduct(@RequestHeader (value = "Authorization") String id,
+                                                 @RequestBody DeleteProductRequest request) throws IllegalAccessException{
+        String token = id.replace("Bearer ", "");
+        if (!jwtService.extractRole(token).equalsIgnoreCase("manager")
+                && !jwtService.extractRole(token).equalsIgnoreCase("admin")) {
+            throw new IllegalAccessException("You have no access.");
+        }
         Product savedProduct = productService.deleteProduct(request.UUID);
         return new ResponseEntity<>(savedProduct, HttpStatus.OK);
     }
