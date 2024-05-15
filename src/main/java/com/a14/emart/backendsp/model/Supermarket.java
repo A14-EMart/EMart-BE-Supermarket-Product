@@ -26,16 +26,25 @@ public class Supermarket {
     private String description;
 
     @Column(nullable = false)
-    private String pengelola;
+    private Long pengelola;
+
+    @Column(nullable = false)
+    private Long totalReview;
+
+    @Column(nullable = false)
+    private Long totalScore;
+
 
     public Supermarket() {
         // Default constructor
     }
 
-    public Supermarket(String name, String description, String pengelola) {
+    public Supermarket(String name, String description, Long pengelola, Long totalReview, Long totalScore) {
         this.name = name;
         this.description = description;
         this.pengelola = pengelola;
+        this.totalReview = totalReview;
+        this.totalScore = totalScore;
     }
 
 

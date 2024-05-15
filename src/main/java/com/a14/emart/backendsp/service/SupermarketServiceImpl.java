@@ -42,6 +42,8 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
         existingSupermarket.setName(newSupermarket.getName());
         existingSupermarket.setDescription(newSupermarket.getDescription());
         existingSupermarket.setPengelola(newSupermarket.getPengelola());
+        existingSupermarket.setTotalReview(newSupermarket.getTotalReview());
+        existingSupermarket.setTotalScore(newSupermarket.getTotalScore());
 
         return supermarketRepository.save(existingSupermarket);
     }
