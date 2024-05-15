@@ -2,12 +2,14 @@ package com.a14.emart.backendsp.service;
 
 import com.a14.emart.backendsp.model.Product;
 import com.a14.emart.backendsp.model.ProductBuilder;
+import com.a14.emart.backendsp.model.Supermarket;
 import com.a14.emart.backendsp.repository.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -25,16 +27,19 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ProductServiceTest {
 
-    @MockBean
+    @Mock
     ProductRepository productRepository;
     @InjectMocks
     ProductServiceImpl service;
 
     private static ArrayList<Product> productList;
+    private static ArrayList<Supermarket> supermarketList;
+
 
     @BeforeEach
     void setUp(){
         productList = new ArrayList<>();
+        supermarketList = new ArrayList<>();
     }
 
     @AfterEach
@@ -68,6 +73,35 @@ public class ProductServiceTest {
         productList.add(product);
 
         assertEquals("123", productList.getFirst().getId());
+    }
+
+
+    @Test
+    public void testSearchProductByName() {
+        Supermarket supermarket1 = Supermarket.builder()
+                .id(1L)
+                .name("Alfamart Kutek")
+                .managers(new ArrayList<>())
+                .products(new ArrayList<>()).build();
+        supermarket1.getManagers().add("sheryl@gmail.com");
+
+        Product product = new ProductBuilder()
+                .setName("Indomie")
+                .setPrice(10000L)
+                .setStock(10)
+                .setSupermarket(supermarket1)
+                .build();
+
+
+        supermarket1.getProducts().add(product);
+        productList.add(product);
+        supermarketList.add(supermarket1);
+
+        assertEquals(supermarketList.getFirst(), product.getSupermarket());
+        List<Product> queryProduct = service.searchProductByName(supermarket1, product.getName());
+        assertTrue(queryProduct.getFirst().getName().contains(product.getName()));
+
+
     }
 
 }
