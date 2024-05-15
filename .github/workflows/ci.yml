@@ -9,16 +9,43 @@ jobs:
   test:
     name: Run tests
     runs-on: ubuntu-22.04
+<<<<<<< HEAD
     steps:
       - name: Check out the Git repository
         uses: actions/checkout@v4
+=======
+
+    services:
+      postgres:
+        image: postgres:12
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 271103
+          POSTGRES_DB: supermarket-product-test
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Check out the Git repository
+        uses: actions/checkout@v4
+
+>>>>>>> bac157625da02494b91d6d9fedea7d976b958820
       - name: Set up Java toolchain
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "21"
           cache: "gradle"
+<<<<<<< HEAD
       - name: Grant execute permission to Gradlew
         run: chmod +x ./gradlew
       - name: Run unit tests
         run: ./gradlew test
+=======
+
+      - name: Grant execute permission to Gradlew
+        run: chmod +x ./gradlew
+
+      - name: Run unit tests
+        run: ./gradlew test -Dspring.profiles.active=test
+>>>>>>> bac157625da02494b91d6d9fedea7d976b958820

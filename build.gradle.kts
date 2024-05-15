@@ -1,11 +1,12 @@
 plugins {
 	java
 	jacoco
-	id("org.springframework.boot") version "3.2.4"
+	id("org.springframework.boot") version "3.2.2"
 	id("io.spring.dependency-management") version "1.1.4"
 }
 
-group = "id.ac.ui.cs.advprog"
+
+group = "com.a14.emart"
 version = "0.0.1-SNAPSHOT"
 
 java {
@@ -22,15 +23,7 @@ repositories {
 	mavenCentral()
 }
 
-
-var seleniumJavaVersion = "4.14.1"
-var seleniumJupiterVersion = "5.0.1"
-var webdrivermanagerVersion = "5.6.3"
-var junitJupiterVersion = "5.9.1"
-var jsonwebtokenVersion = "0.11.5"
-
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	compileOnly("org.projectlombok:lombok")
@@ -39,51 +32,30 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.postgresql:postgresql")
-	testImplementation("org.seleniumhq.selenium:selenium-java:$seleniumJavaVersion")
-	testImplementation("io.github.bonigarcia:selenium-jupiter:$seleniumJupiterVersion")
-	testImplementation("io.github.bonigarcia:webdrivermanager:$webdrivermanagerVersion")
-	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-	implementation("io.jsonwebtoken:jjwt-api:$jsonwebtokenVersion")
-	implementation("io.jsonwebtoken:jjwt-impl:$jsonwebtokenVersion")
-	implementation("io.jsonwebtoken:jjwt-jackson:$jsonwebtokenVersion")
-	implementation("org.springframework.security:spring-security-core")
-	implementation("org.springframework.security:spring-security-web")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.springframework.security:spring-security-test")
+	runtimeOnly("org.postgresql:postgresql")
+	runtimeOnly("com.h2database:h2:2.2.222")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 }
 
-tasks.register<Test>("unitTest") {
-	description = "Runs unit tests."
-	group = "verification"
-
-	filter {
-		excludeTestsMatching("*FunctionalTest")
-	}
-}
-
-tasks.register<Test>("functionalTest") {
-	description = "Runs functional tests."
-	group = "verification"
-
-	filter {
-		includeTestsMatching("*FunctionalTest")
-	}
-}
-
-tasks.withType<Test>().configureEach {
+tasks.withType<Test> {
 	useJUnitPlatform()
 }
 
 tasks.test {
-	filter {
-		excludeTestsMatching("*FunctionalTest")
-	}
-
-	finalizedBy(tasks.jacocoTestReport)
+	useJUnitPlatform()
+	finalizedBy(tasks.jacocoTestReport) //to always generate report after tests
 }
 
 tasks.jacocoTestReport {
+	classDirectories.setFrom(files(classDirectories.files.map{
+		fileTree(it) {exclude("**/*Application**")}
+	}))
 	dependsOn(tasks.test)
+	reports {
+		xml.required.set(false)
+		csv.required.set(false)
+		html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+	}
 }
