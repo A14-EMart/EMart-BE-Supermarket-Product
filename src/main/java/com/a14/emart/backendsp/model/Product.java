@@ -1,5 +1,7 @@
 package com.a14.emart.backendsp.model;
 import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import jakarta.persistence.*;
 
@@ -21,6 +23,13 @@ public class Product {
     @Column(name = "stock", nullable = false)
     private Integer stock;
 
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "supermarket_id", nullable = false)
+    @JsonIgnoreProperties(value = {"products", "handler", "hibernateLazyInitializer"}, allowSetters = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @JsonBackReference
+    private Supermarket supermarket;
     public static ProductBuilder getBuilder() {
         return new ProductBuilder();
     }

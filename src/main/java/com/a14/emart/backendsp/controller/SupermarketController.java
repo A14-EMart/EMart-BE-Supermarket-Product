@@ -7,6 +7,7 @@ import com.a14.emart.backendsp.service.UpdateService;
 import com.a14.emart.backendsp.service.DeleteService;
 import com.a14.emart.backendsp.controller.ApiResponse;
 import com.a14.emart.backendsp.dto.SupermarketResponse;
+import com.a14.emart.backendsp.service.JwtService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,117 +20,135 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/supermarket")
+@RequiredArgsConstructor
 public class SupermarketController {
+    @Value("${spring.route.gateway_url}")
+    private String GATEWAY_URL;
 
-    @Autowired
-    private CreateService<Supermarket> createService;
+    private final SupermarketService supermarketService;
+    private final JwtService jwtService;
 
-    @Autowired
-    private ReadService<Supermarket> readService;
+    private final WebClient webClient;
 
-    @Autowired
-    private UpdateService<Supermarket> updateService;
+    @GetMapping("/profile")
+    public ResponseEntity<GetSupermarketProfileResponse> getProfile(@RequestParam Long id) {
+        Supermarket supermarket = supermarketService.getSupermarket(id);
 
-    @Autowired
-    private DeleteService<Supermarket> deleteService;
+        GetSupermarketProfileResponse response = new GetSupermarketProfileResponse();
+        response.id = supermarket.getId();
+        response.name = supermarket.getName();
+        response.managers = new ArrayList<>();
+        for (String managerId : supermarket.getManagers()) {
+            GetProfileResponse profileResponse = webClient.get()
+                    .uri(GATEWAY_URL + "/api/user/profile",
+                            uriBuilder -> uriBuilder.queryParam("email", managerId).build())
+                    .retrieve()
+                    .bodyToMono(GetProfileResponse.class)
+                    .block();
 
-
-    public SupermarketResponse buildSingleResponse(Supermarket supermarket){
-        return new SupermarketResponse(supermarket);
-    }
-    public List<SupermarketResponse> buildMultipleResponses(List<Supermarket> supermarkets){
-        List<SupermarketResponse> supermarketResponses = new ArrayList<>();
-        for(Supermarket supermarket : supermarkets){
-            supermarketResponses.add(new SupermarketResponse(supermarket));
+            response.managers.add(profileResponse.name);
         }
-        return supermarketResponses;
+
+        return ResponseEntity.ok(response);
     }
-    @PostMapping
-    public ResponseEntity<ApiResponse<SupermarketResponse>> createSupermarket(@RequestBody Supermarket supermarket) {
+
+    @PutMapping("/add-manager/{id}")
+    public ResponseEntity<SuccessResponse> addManager(@RequestHeader(value = "Authorization") String id, @PathVariable("id") Long supermarketId,
+                                                      @RequestBody AddManagerRequest request) throws IllegalAccessException {
+        String token = id.replace("Bearer ", "");
+        if (!jwtService.extractRole(token).equalsIgnoreCase("admin")) {
+            throw new IllegalAccessException("You have no access.");
+        }
+
+        SuccessResponse response = new SuccessResponse();
         try {
-            Supermarket created = createService.create(supermarket);
-            if (created == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ApiResponse<SupermarketResponse>(false, null, "Failed to create supermarket. Input may be invalid."));
-            }
-            return ResponseEntity.ok(new ApiResponse<SupermarketResponse>(true, buildSingleResponse(created), "Supermarket created successfully"));
+            supermarketService.addManager(supermarketId, request.managerEmail);
+            response.success = true;
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<SupermarketResponse>(false, null, "Internal Server Error: " + e.getMessage()));
+            System.out.println(e);
+            response.success = false;
         }
+
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<SupermarketResponse>>> getAllSupermarkets() {
+    @PutMapping("/remove-manager/{id}")
+    public ResponseEntity<SuccessResponse> removeManager(@RequestHeader(value = "Authorization") String id,
+                                                         @PathVariable("id") Long supermarketId,
+                                                         @RequestBody AddManagerRequest request) throws IllegalAccessException {
+        String token = id.replace("Bearer ", "");
+        if (!jwtService.extractRole(token).equalsIgnoreCase("admin")) {
+            throw new IllegalAccessException("You have no access.");
+        }
+
+        SuccessResponse response = new SuccessResponse();
+
         try {
-            List<Supermarket> supermarkets = readService.findAll();
-            return ResponseEntity.ok(new ApiResponse<List<SupermarketResponse>>(true, buildMultipleResponses(supermarkets), "Successfully retrieve data!"));
+            supermarketService.removeManager(supermarketId, request.managerEmail);
+            response.success = true;
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<List<SupermarketResponse>>(false, null, "Internal Server Error: " + e.getMessage()));
+            response.success = false;
         }
+
+        return ResponseEntity.ok(response);
     }
 
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<SupermarketResponse>> getSupermarketById(@PathVariable UUID id) {
-        try{
-            Supermarket supermarket = readService.findById(id);
-            if (supermarket == null) {
-                return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .body(new ApiResponse<SupermarketResponse>(false, null, "Supermarket with ID " + id + " does not exist!" ));
-            }
-            return ResponseEntity.ok(new ApiResponse<SupermarketResponse>(true, buildSingleResponse(supermarket), "Supermarket found"));
-        }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<SupermarketResponse>(false, null, "Internal Server Error"));
+    @PostMapping("/add-product")
+    public ResponseEntity<AddProductResponse> addProduct(@RequestHeader(value = "Authorization") String id,
+                                                         @RequestBody AddProductRequest request) throws IllegalAccessException {
+        String token = id.replace("Bearer ", "");
+        if (!jwtService.extractRole(token).equalsIgnoreCase("manager")
+                && !jwtService.extractRole(token).equalsIgnoreCase("admin")) {
+            throw new IllegalAccessException("You have no access.");
         }
 
+        Product product = Product.getBuilder()
+                .setName(request.getName())
+                .setPrice(request.getPrice())
+                .setStock(request.getStock())
+                .build();
+
+        Supermarket supermarket = supermarketService.addProduct(request.supermarketId, product);
+
+        return ResponseEntity.ok(AddProductResponse.builder().supermarketId(supermarket.getId()).productId(product.getId()).build());
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<SupermarketResponse>>> searchSupermarkets(@RequestParam String query) {
-        try {
-            List<Supermarket> supermarkets = readService.findByMatch(query);
-            if (supermarkets.isEmpty()) {
-                return ResponseEntity.ok(new ApiResponse<List<SupermarketResponse>>(false, null, "No supermarkets found matching the query"));
-            }
-            return ResponseEntity.ok(new ApiResponse<List<SupermarketResponse>>(true, buildMultipleResponses(supermarkets), "Supermarkets found successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<List<SupermarketResponse>>(false, null, "Internal Server Error during search: " + e.getMessage()));
+    @PostMapping("/create-supermarket")
+    public ResponseEntity<Supermarket> createSupermarket(@RequestHeader(value = "Authorization") String id,
+                                                         @RequestBody CreateSupermarketRequest request) throws IllegalAccessException {
+        String token = id.replace("Bearer ", "");
+        if (!jwtService.extractRole(token).equalsIgnoreCase("admin")) {
+            throw new IllegalAccessException("You have no access.");
         }
+
+        return ResponseEntity.ok(supermarketService.createSupermarket(request.name));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<SupermarketResponse>> updateSupermarket(@PathVariable UUID id, @RequestBody Supermarket supermarket) {
-        try {
-            Supermarket updated = updateService.update(id, supermarket);
-            if (updated == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ApiResponse<SupermarketResponse>(false, null, "Supermarket with ID " + id + " not found"));
-            }
-
-            return ResponseEntity.ok(new ApiResponse<SupermarketResponse>(true, buildSingleResponse(updated), "Supermarket updated successfully"));
-        } catch (Exception e) {
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<SupermarketResponse>(false, null, "Failed to update supermarket: " + e.getMessage()));
+    @PutMapping("/edit-supermarket/{id}")
+    public ResponseEntity<Supermarket> editSupermarket(@RequestHeader(value = "Authorization") String id,
+                                                       @PathVariable("id") Long supermarketId,
+                                                       @RequestBody EditSupermarketRequest request) throws IllegalAccessException {
+        String token = id.replace("Bearer ", "");
+        if (!jwtService.extractRole(token).equalsIgnoreCase("admin")) {
+            throw new IllegalAccessException("You have no access.");
         }
+
+        return ResponseEntity.ok(supermarketService.editSupermarket(supermarketId, request));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteSupermarket(@PathVariable UUID id) {
-        boolean deleted = deleteService.deleteById(id);
-        if (!deleted) {
-
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse<Void>(false, null, "Supermarket with ID " + id + " not found"));
+    @DeleteMapping("/delete-supermarket/{id}")
+    public ResponseEntity<SuccessResponse> deleteSupermarket(@RequestHeader(value = "Authorization") String id,
+                                                             @PathVariable("id") Long supermarketId) throws IllegalAccessException {
+        String token = id.replace("Bearer ", "");
+        if (!jwtService.extractRole(token).equalsIgnoreCase("admin")) {
+            throw new IllegalAccessException("You have no access.");
         }
 
-        return ResponseEntity
-                .ok(new ApiResponse<Void>(true, null, "Supermarket deleted successfully"));
+        return ResponseEntity.ok(SuccessResponse.builder().success(true).build());
+    }
+
+    @GetMapping("/supermarket")
+    public ResponseEntity<List<Supermarket>> getAllSupermarkets() {
+        return ResponseEntity.ok(supermarketService.getAllSupermarkets());
     }
 }

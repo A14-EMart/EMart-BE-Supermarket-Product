@@ -5,13 +5,11 @@ import com.a14.emart.backendsp.dto.DeleteProductRequest;
 import com.a14.emart.backendsp.dto.ModifyProductResponse;
 import com.a14.emart.backendsp.model.Product;
 import com.a14.emart.backendsp.model.ProductBuilder;
-import com.a14.emart.backendsp.service.JwtService;
 import com.a14.emart.backendsp.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RequestMapping("/product")
 @RestController
