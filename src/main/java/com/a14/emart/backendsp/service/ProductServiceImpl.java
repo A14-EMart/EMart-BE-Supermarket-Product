@@ -48,19 +48,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> getAllProduct(Long supermarket) {
-        List<Product> allProduct = supermarketRepository.getReferenceById(supermarket).getProducts();
-        return allProduct;
+        return supermarketRepository.getReferenceById(supermarket).getProducts();
     }
 
     public List<Product> searchProductByName(Supermarket supermarket, String name) {
-        List<Product> searchProductByName = supermarket.getProducts();
-        List<Product> productList = new ArrayList<>();
-        for (Product product : searchProductByName) {
-            if (product.getName().toLowerCase().contains(name.toLowerCase())) {
-                productList.add(product);
-            }
-        }
-        return productList;
+        return productRepository.findBySupermarketAndNameContainingIgnoreCase(supermarket, name);
     }
 
     public Product searchProductById(String id) {
