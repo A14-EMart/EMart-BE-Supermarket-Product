@@ -4,6 +4,7 @@ public class ProductBuilder {
     private String name;
     private Long price;
     private Integer stock;
+    private String imageUrl; // Add this line
     private Supermarket supermarket;
 
     public ProductBuilder setName(String name) {
@@ -37,6 +38,11 @@ public class ProductBuilder {
         return this;
     }
 
+    public ProductBuilder setImageUrl(String imageUrl) { // Add this method
+        this.imageUrl = imageUrl;
+        return this;
+    }
+
     public ProductBuilder setSupermarket(Supermarket supermarket) {
         if (supermarket == null) {
             throw new IllegalArgumentException("Supermarket cannot be null");
@@ -50,6 +56,7 @@ public class ProductBuilder {
         product.setName(this.name);
         product.setPrice(this.price);
         product.setStock(this.stock);
+        product.setImageUrl(this.imageUrl); // Add this line
         product.setSupermarket(this.supermarket);
         resetBuilder();
         return product;
@@ -69,6 +76,7 @@ public class ProductBuilder {
         this.name = "";
         this.price = 0L;
         this.stock = 0;
+        this.imageUrl = null; // Add this line
         this.supermarket = null;
     }
 }

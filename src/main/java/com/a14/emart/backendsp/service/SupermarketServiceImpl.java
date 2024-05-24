@@ -1,34 +1,48 @@
 package com.a14.emart.backendsp.service;
 
+import com.a14.emart.backendsp.config.RabbitMQConfig;
 import com.a14.emart.backendsp.model.Supermarket;
 import com.a14.emart.backendsp.repository.SupermarketRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+
 @Service
-public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadService<Supermarket>, UpdateService<Supermarket>, DeleteService<Supermarket>{
+public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadService<Supermarket>, UpdateService<Supermarket>, DeleteService<Supermarket> {
 
     @Autowired
-    SupermarketRepository supermarketRepository;
-    @Override
-    public Supermarket create(Supermarket supermarket){
-        return supermarketRepository.save(supermarket);
+    private SupermarketRepository supermarketRepository;
 
-    }
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
     @Override
-    public List<Supermarket> findAll(){
+    public Supermarket create(Supermarket supermarket) {
+        // Save supermarket
+        Supermarket createdSupermarket = supermarketRepository.save(supermarket);
+
+        // Send message to auth microservice
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.ROUTING_KEY, supermarket.getPengelola());
+
+        return createdSupermarket;
+    }
+
+    @Override
+    public List<Supermarket> findAll() {
         return supermarketRepository.findAll();
     }
+
     @Override
-    public Supermarket findById(UUID id){
+    public Supermarket findById(UUID id) {
         return supermarketRepository.findById(id).orElse(null);
     }
 
     @Override
-    public List<Supermarket> findByMatch(String param){
+    public List<Supermarket> findByMatch(String param) {
         return supermarketRepository.findByNameContainingIgnoreCase(param);
     }
 
@@ -47,6 +61,7 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
 
         return supermarketRepository.save(existingSupermarket);
     }
+
     @Override
     public boolean deleteById(UUID id) {
         if (!supermarketRepository.existsById(id)) {
@@ -55,6 +70,4 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
         supermarketRepository.deleteById(id);
         return true;
     }
-
-
 }

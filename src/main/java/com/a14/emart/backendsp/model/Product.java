@@ -25,6 +25,9 @@ public class Product {
     @Column(name = "stock", nullable = false)
     private Integer stock;
 
+    @Column(name = "image_url", nullable = true)
+    private String imageUrl;
+
     @ManyToOne
     @JoinColumn(name = "supermarket_id", nullable = false)
     @JsonBackReference

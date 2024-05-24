@@ -37,6 +37,9 @@ public class Supermarket {
     @Column(nullable = false)
     private Long totalScore;
 
+    @Column(nullable = true)
+    private String imageUrl; // Add this line
+
     @OneToMany(mappedBy = "supermarket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Product> products;
@@ -45,11 +48,12 @@ public class Supermarket {
         // Default constructor
     }
 
-    public Supermarket(String name, String description, Long pengelola, Long totalReview, Long totalScore) {
+    public Supermarket(String name, String description, Long pengelola, Long totalReview, Long totalScore, String imageUrl) {
         this.name = name;
         this.description = description;
         this.pengelola = pengelola;
         this.totalReview = totalReview;
         this.totalScore = totalScore;
+        this.imageUrl = imageUrl;
     }
 }

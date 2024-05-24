@@ -2,9 +2,12 @@ package com.a14.emart.backendsp.controller;
 
 import com.a14.emart.backendsp.dto.CreateProductRequest;
 import com.a14.emart.backendsp.dto.ModifyProductResponse;
+import com.a14.emart.backendsp.dto.SupermarketResponse;
 import com.a14.emart.backendsp.model.Product;
 import com.a14.emart.backendsp.model.ProductBuilder;
 import com.a14.emart.backendsp.model.Supermarket;
+import com.a14.emart.backendsp.service.CloudinaryService;
+import com.a14.emart.backendsp.service.JwtService;
 import com.a14.emart.backendsp.service.ProductService;
 import com.a14.emart.backendsp.service.ReadService;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +15,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.a14.emart.backendsp.controller.ApiResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+
 @RequestMapping("/product")
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequiredArgsConstructor
 public class ProductController {
@@ -28,6 +36,9 @@ public class ProductController {
 
     @Autowired
     private ReadService<Supermarket> readService;
+
+    private final JwtService jwtService;
+    private final CloudinaryService cloudinaryService;
 
     @GetMapping("/all")
     public ResponseEntity<List<Product>> allProduct() {
@@ -48,17 +59,57 @@ public class ProductController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Product> createProduct(@RequestBody CreateProductRequest productRequest) {
-        Supermarket target = readService.findById(productRequest.getSupermarketId());
-        Product product = new ProductBuilder()
-                .setName(productRequest.getName())
-                .setStock(productRequest.getStock())
-                .setPrice(productRequest.getPrice())
-                .setSupermarket(target)
-                .build();
-        Product savedProduct = productService.createProduct(product);
-        return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<Product>> createProduct(
+            @RequestParam("name") String name,
+            @RequestParam("price") Long price,
+            @RequestParam("stock") Integer stock,
+            @RequestParam("supermarketId") UUID supermarketId,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestHeader("Authorization") String token) {
+        try {
+            String tokenWithoutBearer = token.replace("Bearer ", "");
+            String role = jwtService.extractRole(tokenWithoutBearer);
+            System.out.println(role);
+
+            if (!role.equalsIgnoreCase("manager")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new ApiResponse<>(false, null, "You have no access."));
+            }
+
+
+            // Fetch the supermarket entity
+            Supermarket target = readService.findById(supermarketId);
+            if(target == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse<>(false, null, "Supermarket not found."));
+            }
+
+            if(!target.getPengelola().equals(jwtService.extractUserId(tokenWithoutBearer))){
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new ApiResponse<>(false, null, "You have no access."));
+            }
+
+            String imageUrl = cloudinaryService.uploadFile(file);
+
+            Product product = new ProductBuilder()
+                    .setName(name)
+                    .setStock(stock)
+                    .setPrice(price)
+                    .setSupermarket(target)
+                    .setImageUrl(imageUrl)
+                    .build();
+            Product savedProduct = productService.createProduct(product);
+            if(savedProduct == null){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse<>(false, null, "Failed to add product. Input may be invalid."));
+            }
+
+            return ResponseEntity.ok(new ApiResponse<>(true, savedProduct, "Product added successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
+
 
     @PutMapping("/edit/{id}")
     public ResponseEntity<Product> editProduct(@PathVariable UUID id,
