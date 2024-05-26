@@ -25,7 +25,6 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
         // Save supermarket
         Supermarket createdSupermarket = supermarketRepository.save(supermarket);
 
-        // Send message to auth microservice
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.ROUTING_KEY, supermarket.getPengelola());
 
         return createdSupermarket;
