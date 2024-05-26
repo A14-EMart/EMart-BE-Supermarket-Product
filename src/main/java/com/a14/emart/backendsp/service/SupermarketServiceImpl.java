@@ -22,7 +22,6 @@ public class SupermarketServiceImpl implements CreateService<Supermarket>, ReadS
 
     @Override
     public Supermarket create(Supermarket supermarket) {
-        // Save supermarket
         Supermarket createdSupermarket = supermarketRepository.save(supermarket);
 
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.ROUTING_KEY, supermarket.getPengelola());
