@@ -44,9 +44,10 @@ dependencies {
 	implementation("org.springframework.security:spring-security-web")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
-	implementation("io.github.cdimascio:dotenv-java:2.2.3")
 	implementation("com.cloudinary:cloudinary-http44:1.31.0")
 	implementation("org.springframework.boot:spring-boot-starter-amqp")
+	implementation("io.github.cdimascio:dotenv-java:2.2.3")
+
 
 
 }
