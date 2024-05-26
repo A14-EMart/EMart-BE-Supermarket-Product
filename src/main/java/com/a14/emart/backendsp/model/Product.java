@@ -1,6 +1,8 @@
 package com.a14.emart.backendsp.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.*;
 import jakarta.persistence.*;
 import java.util.UUID;
@@ -10,6 +12,7 @@ import java.util.UUID;
 @Table(name = "products")
 @Getter
 @Setter
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Product {
 
     @Id
@@ -30,7 +33,7 @@ public class Product {
 
     @ManyToOne
     @JoinColumn(name = "supermarket_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnoreProperties(value = {"products", "handler", "hibernateLazyInitializer"}, allowSetters = true)
     private Supermarket supermarket;
 
     public static ProductBuilder getBuilder() {

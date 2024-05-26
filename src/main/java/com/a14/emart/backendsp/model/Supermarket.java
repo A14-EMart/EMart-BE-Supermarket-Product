@@ -1,6 +1,8 @@
 package com.a14.emart.backendsp.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
@@ -12,6 +14,7 @@ import java.util.UUID;
 @Table(name = "supermarket")
 @Getter
 @Setter
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Supermarket {
 
     @Id
@@ -38,10 +41,10 @@ public class Supermarket {
     private Long totalScore;
 
     @Column(nullable = true)
-    private String imageUrl; // Add this line
+    private String imageUrl;
 
     @OneToMany(mappedBy = "supermarket", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonIgnoreProperties(value = {"supermarket", "hibernateLazyInitializer", "handler"}, allowSetters = true)
     private List<Product> products;
 
     public Supermarket() {

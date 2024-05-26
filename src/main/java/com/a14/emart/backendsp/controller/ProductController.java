@@ -1,6 +1,7 @@
 package com.a14.emart.backendsp.controller;
 
 import com.a14.emart.backendsp.dto.CreateProductRequest;
+import com.a14.emart.backendsp.dto.GetProductResponse;
 import com.a14.emart.backendsp.dto.ModifyProductResponse;
 import com.a14.emart.backendsp.dto.SupermarketResponse;
 import com.a14.emart.backendsp.model.Product;
@@ -64,7 +65,6 @@ public class ProductController {
             @RequestParam("price") Long price,
             @RequestParam("stock") Integer stock,
             @RequestParam("supermarketId") UUID supermarketId,
-            @RequestParam(value = "file", required = false) MultipartFile file,
             @RequestHeader("Authorization") String token) {
         try {
             String tokenWithoutBearer = token.replace("Bearer ", "");
@@ -89,14 +89,11 @@ public class ProductController {
                         .body(new ApiResponse<>(false, null, "You have no access."));
             }
 
-            String imageUrl = cloudinaryService.uploadFile(file);
-
             Product product = new ProductBuilder()
                     .setName(name)
                     .setStock(stock)
                     .setPrice(price)
                     .setSupermarket(target)
-                    .setImageUrl(imageUrl)
                     .build();
             Product savedProduct = productService.createProduct(product);
             if(savedProduct == null){
@@ -133,9 +130,10 @@ public class ProductController {
     }
 
     @GetMapping("/findById/{id}")
-    public ResponseEntity<Product> searchProductById(@PathVariable UUID id) {
+    public ResponseEntity<GetProductResponse> searchProductById(@PathVariable UUID id) {
         Product queryProduct = productService.searchProductById(id);
-        return ResponseEntity.ok(queryProduct);
+        GetProductResponse productDTO = new GetProductResponse(queryProduct);
+        return ResponseEntity.ok(productDTO);
     }
 
     @GetMapping("/findByMultipleId/{ids}")
