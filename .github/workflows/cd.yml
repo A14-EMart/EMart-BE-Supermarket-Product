@@ -103,6 +103,16 @@ jobs:
         run: echo "${{ secrets.SSH_KEY }}" > ssh-key.pem
       - name: update permission
         run: chmod 400 ssh-key.pem
+      - name: create env file
+        run: |
+            cat << EOF > .env
+            REGISTRY_USER=${{ secrets.REGISTRY_USER }}
+            IMAGE_NAME=${{ secrets.IMAGE_NAME }}
+            IMAGE_TAG=${{ secrets.IMAGE_TAG }}
+            CONTAINER_NAME=${{ secrets.CONTAINER_NAME }}
+            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            JWT_EXPIRE_DURATION=${{ secrets.JWT_EXPIRE_DURATION }}
+            EOF
       - name: Deploy to GCP
         run: |
           ssh -o StrictHostKeyChecking=no -i ssh-key.pem ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_STATIC_IP }} "
