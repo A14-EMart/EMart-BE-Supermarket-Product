@@ -2,6 +2,7 @@ package com.a14.emart.backendsp.controller;
 
 import com.a14.emart.backendsp.event.SupermarketCreatedEvent;
 import com.a14.emart.backendsp.model.Supermarket;
+import com.a14.emart.backendsp.model.SupermarketBuilder;
 import com.a14.emart.backendsp.service.CreateService;
 import com.a14.emart.backendsp.service.ReadService;
 import com.a14.emart.backendsp.service.UpdateService;
@@ -162,4 +163,32 @@ public class SupermarketController {
         return ResponseEntity
                 .ok(new ApiResponse<Void>(true, null, "Supermarket deleted successfully"));
     }
+
+    @PostMapping("/rating/")
+    public ResponseEntity<ApiResponse<Void>> updateRating(
+            @RequestParam Long score,
+            @RequestParam UUID supermarketId) {
+        Supermarket target = readService.findById(supermarketId);
+        if (target == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<Void>(false, null, "Supermarket with ID " + supermarketId + " not found"));
+        }
+        Long totalReview = target.getTotalReview();
+        totalReview++;
+        Long totalScore = target.getTotalScore();
+        totalScore += score;
+        Supermarket tempSupermarket = new SupermarketBuilder()
+                .setName(target.getName())
+                .setDescription(target.getDescription())
+                .setPengelola(target.getPengelola())
+                .setTotalReview(totalReview)
+                .setTotalScore(totalScore)
+                .build();
+        updateService.update(supermarketId, tempSupermarket);
+
+        return ResponseEntity
+                .ok(new ApiResponse<Void>(true, null, "Supermarket has been updated successfully"));
+    }
+
 }
